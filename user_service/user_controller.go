@@ -2,10 +2,10 @@ package user_service
 
 import (
 	"context"
+	"net/http"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"net/http"
 )
 
 type UserController struct {
@@ -39,3 +39,17 @@ func (controller *UserController) deleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
+
+func (controller *UserController) GetUser(c *gin.Context) {
+	username := c.Param("username")
+
+	var user User
+	err := controller.UserCollection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
