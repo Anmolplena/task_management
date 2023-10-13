@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"GoWithMongo/task_service"
-	"GoWithMongo/user_service"
+
+	"GoWithMongo/api"
+	"GoWithMongo/datstore/repository"
+	"GoWithMongo/internal/task"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,15 +21,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Disconnect(context.Background())
 
-	userCollection := client.Database("task_management").Collection("users")
 	taskCollection := client.Database("task_management").Collection("tasks")
 
-	userController := &user_service.UserController{UserCollection: userCollection}
-	taskController := &task_service.TaskController{TaskCollection: taskCollection}
+	// Create the task repository
+	taskRepo := repository.NewTaskRepository(taskCollection)
 
-	user_service.SetupUserRoutes(r, userController)
-	task_service.SetupTaskRoutes(r, taskController)
+	// Set up task service using the task repository
+	taskService := task.NewTaskService(taskRepo)
+
+	// Set up task API
+	api.NewTaskAPI(r, taskService)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)

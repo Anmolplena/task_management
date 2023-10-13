@@ -1,4 +1,4 @@
-package task_service
+package entity 
 
 type Task struct {
 	Title       string `json:"title"`
@@ -8,3 +8,5 @@ type Task struct {
 	Completed   bool   `json:"completed"`
 	Username    string `json:"username"`
 }
+
+

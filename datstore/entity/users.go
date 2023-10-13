@@ -1,4 +1,4 @@
-package user_service
+package entity
 
 type User struct {
 	Username string `json:"username"`
