@@ -24,9 +24,9 @@ func NewTaskAPI(router *gin.Engine, taskService task.TaskService) {
 	{
 		taskGroup.POST("/", api.CreateTask)
 		taskGroup.PUT("/:taskID", api.EditTask)
-		// taskGroup.GET("/:taskID", api.GetTaskByID)
-		// taskGroup.GET("/", api.SearchTasks)
-		// taskGroup.PATCH("/:taskID/complete", api.MarkTaskComplete)
+		taskGroup.GET("/:taskID", api.GetTaskByID)
+		taskGroup.GET("/", api.SearchTasks)
+		taskGroup.PATCH("/:taskID/complete", api.MarkTaskComplete)
 	}
 }
 
@@ -62,41 +62,50 @@ func (api *TaskAPI) EditTask(c *gin.Context) {
 	c.JSON(http.StatusOK, taskUpdated)
 }
 
-// func (api *TaskAPI) GetTaskByID(c *gin.Context) {
-// 	taskID := c.Param("taskID")
+func (api *TaskAPI) GetTaskByID(c *gin.Context) {
+	taskID := c.Param("taskID")
 
-// 	// Call the GetTaskByID function in the service
-// 	// Implement the logic to call the service's GetTaskByID method
-// 	// task, err := api.TaskService.GetTaskByID(taskID)
-// 	// ...
+	task, err := api.TaskService.GetTaskByID(taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	// Placeholder response for now
-// 	c.JSON(http.StatusOK, gin.H{"message": "Task retrieved successfully"})
-// }
+	c.JSON(http.StatusOK, task)
+}
 
-// func (api *TaskAPI) SearchTasks(c *gin.Context) {
-// 	// Parse query parameters for filtering, if needed
-// 	// ...
+func (api *TaskAPI) SearchTasks(c *gin.Context) {
+	// Implement parsing query parameters for filtering if needed
 
-// 	// Call the SearchTasks function in the service
-// 	// Implement the logic to call the service's SearchTasks method
-// 	// tasks, err := api.TaskService.SearchTasks(filter)
-// 	// ...
+	filter := make(map[string]interface{})
+	// Example: Parse a query parameter named "status" as filter
+	priority := c.Query("priority")
+	completed:= c.Query("completed")
+	if priority != "" {
+		filter["priority"] = priority
+	}
+	if completed != ""{
+		filter["priority"] = priority
+	}
 
-// 	// Placeholder response for now
-// 	c.JSON(http.StatusOK, gin.H{"message": "Tasks retrieved successfully"})
-// }
+	tasks, err := api.TaskService.SearchTasks(filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-// func (api *TaskAPI) MarkTaskComplete(c *gin.Context) {
-// 	taskID := c.Param("taskID")
+	c.JSON(http.StatusOK, tasks)
+}
 
-// 	// Call the MarkTaskComplete function in the service
-// 	// Implement the logic to call the service's MarkTaskComplete method
-// 	// updatedTask, err := api.TaskService.MarkTaskComplete(taskID)
-// 	// ...
+func (api *TaskAPI) MarkTaskComplete(c *gin.Context) {
+	taskID := c.Param("taskID")
 
-// 	// Placeholder response for now
-// 	c.JSON(http.StatusOK, gin.H{"message": "Task marked as complete"})
-// }
+	taskUpdated, err := api.TaskService.MarkTaskComplete(taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-// Add other task-related functions as needed
+	c.JSON(http.StatusOK, taskUpdated)
+}
+
